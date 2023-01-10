@@ -54,74 +54,135 @@ pub fn opg9() -> Result<()> {
 }
 
 
-fn get_dir(dir: &str) -> (i32, i32)
+fn get_dir(dir: &str) -> Point
 {
     match dir {
     
-        "L" => (-1, 0),
-        "R" => (1, 0),
-        "U" => (0, 1),
-        "D" => (0, -1),
+        "L" => Point::new(-1, 0),
+        "R" => Point::new(1, 0),
+        "U" => Point::new(0, 1),
+        "D" => Point::new(0, -1),
         _ => panic!("Unexpected direction {dir}")
     }
 }
 
-fn move_tail(head: (i32, i32), mut tail: (i32,i32), xdir: i32, ydir: i32) -> (i32,i32)
+#[derive(Debug, PartialEq, Hash, Clone)]
+struct Point
 {
-    if abs(head.0 - tail.0) > 1
+    x: i32,
+    y: i32,
+}
+
+impl Eq for Point {}
+
+impl Point
+{
+    fn new(x: i32, y: i32) -> Self
     {
-        tail = (tail.0 + xdir, head.1);
-    } else if abs(head.1 - tail.1) > 1
+        Self { x:x, y:y}
+    }
+}
+
+fn move_tail(head: &Point, mut tail: Point, dir: &Point) -> Point
+{
+    if abs(head.x - tail.x) > 1
     {
-        tail = (head.0, tail.1 + ydir);
+        tail = Point { x: tail.x + dir.x, y: head.y + dir.y };
+    }
+    if abs(head.y - tail.y) > 1
+    {
+        tail = Point { x: head.x + dir.x, y: tail.y + dir.y };
     }
     tail
 }
 
+fn get_move(head: &Point, tail: &Point, dir: &Point) -> Point
+{
+    if (abs(head.x - tail.x) > 1) && (abs(head.y - tail.y) > 1)
+    {
+        return Point { x: dir.x, y: dir.y }
+    }
+
+    if abs(head.x - tail.x) > 1
+    {
+        return Point { x: dir.x, y: head.y - tail.y }
+    }
+    if abs(head.y - tail.y) > 1
+    {
+        return Point { x: head.x - tail.x, y: dir.y }
+    }
+    Point::new(0,0)
+}
+
 fn do_opg(input: &str) -> Result<i32> {
-    let mut positions = HashSet::<(i32,i32)>::new();
+    let mut positions = HashSet::<Point>::new();
     let commands = input.split('\n');
-    let mut head = (0,0);
-    let mut tail = (0,0);
+    let mut head = Point {x:0,y:0};
+    let mut tail = Point {x:0,y:0};
     for command in commands
     {
         let parts : Vec<_> = command.split(' ').collect();
-        let (xdir, ydir) = get_dir(parts[0]);
+        let dir = get_dir(parts[0]);
         let len = parts[1].parse::<i32>().unwrap();
-        println!("Moving {len}, ({xdir},{ydir})");
+        println!("Moving {len}, {dir:?}");
         for _ in 0..len
         {
-            head = (head.0 + xdir, head.1 + ydir);
-            tail = move_tail(head, tail, xdir, ydir);
-            println!("Head ({}, {}), Tail ({}, {})", head.0, head.1, tail.0, tail.1);
-            positions.insert(tail);
+            head = Point{ x: head.x + dir.x, y: head.y + dir.y};
+            //tail = move_tail(&head, tail.clone(), &dir);
+            let m = get_move(&head, &tail, &dir);
+            tail = Point::new(tail.x + m.x, tail.y + m.y);
+            //{
+            //    tail = Point { x:tail.x + dir.x, y:tail.y + dir.y }
+            // }
+            println!("Head ({}, {}), Tail ({}, {})", head.x, head.y, tail.x, tail.y);
+            positions.insert(tail.clone());
         }
     }
     
-
     Ok(positions.len() as i32)
 }
 
 
 fn do_opg_part2(input: &str) -> Result<i32> {
-    let mut positions = HashSet::<(i32,i32)>::new();
+    let mut positions = HashSet::<Point>::new();
     let commands = input.split('\n');
-    let mut head = (0,0);
-    let mut tail = (0,0);
-    for command in commands
+    //let mut head = Point {x:0,y:0};
+    //let mut tail = Point {x:0,y:0};
+    let mut rope = vec![Point::new(0,0); 10];
+    let tail = 0;
+    let head = rope.len() - 1;
+
+    for command in commands.into_iter()
     {
         let parts : Vec<_> = command.split(' ').collect();
-        let (xdir, ydir) = get_dir(parts[0]);
+        let dir = get_dir(parts[0]);
         let len = parts[1].parse::<i32>().unwrap();
-        println!("Moving {len}, ({xdir},{ydir})");
+        println!("Moving {len}, {dir:?}");
         for _ in 0..len
         {
-            head = (head.0 + xdir, head.1 + ydir);
-            tail = move_tail(head, tail, xdir, ydir);
-            println!("Head ({}, {}), Tail ({}, {})", head.0, head.1, tail.0, tail.1);
-            positions.insert(tail);
+            rope[head]  = Point{ x: rope[head].x + dir.x, y: rope[head].y + dir.y};
+            //let mut last_pos = rope[head - 1].clone();
+            //rope[head - 1] = move_tail(&rope[head], rope[head -1].clone(), &dir);
+            let mut m = dir.clone();
+            for rope_pos in 0..head
+            {
+                let next_m = get_move(&rope[head - rope_pos], &rope[head - 1 - rope_pos], &m);
+                rope[head - 1 - rope_pos] = Point::new(rope[head - 1 - rope_pos].x + next_m.x, rope[head - 1 - rope_pos].y + next_m.y);
+
+                m = next_m;
+            }
+            //tail = move_tail(&head, tail.clone(), &dir);
+            positions.insert(rope[tail].clone());
+            println!("Head ({}, {}), Tail ({}, {})", rope[head].x, rope[head].y, rope[tail].x, rope[tail].y);
+            for x in &rope
+            {
+                print!("({},{})", x.x, x.y);
+            }
+            println!();
+            //dbg!(&rope);
         }
     }
+    
     
 
     Ok(positions.len() as i32)

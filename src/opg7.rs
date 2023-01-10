@@ -1,9 +1,6 @@
 
 use anyhow::{Result};
-use std::borrow::{BorrowMut, Borrow};
-use std::f32::consts::E;
 use std::fs::read_to_string;
-//use std::intrinsics::const_eval_select;
 use itertools::Itertools;
 
 use nom::AsChar;
