@@ -16,6 +16,8 @@ pub mod opg8;
 pub mod opg9;
 pub mod opg10;
 pub mod opg11;
+pub mod opg12;
+
 
 pub fn opg1() -> Result<()> {
     println!("Hello, opg 1!");

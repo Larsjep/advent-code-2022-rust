@@ -12,9 +12,9 @@ use advent_rust::opg8::opg8;
 use advent_rust::opg9::opg9;
 use advent_rust::opg10::opg10;
 use advent_rust::opg11::opg11;
+use advent_rust::opg12::opg12;
 
-
-const FUNCS : &[fn() -> Result<()>] = &[ opg1, opg2, opg3, opg4, opg5, opg6, opg7, opg8, opg9, opg10, opg11 ];
+const FUNCS : &[fn() -> Result<()>] = &[ opg1, opg2, opg3, opg4, opg5, opg6, opg7, opg8, opg9, opg10, opg11, opg12 ];
 
 fn main() -> Result<()> {
     println!("Starting");
